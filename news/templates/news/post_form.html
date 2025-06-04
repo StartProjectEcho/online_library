@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load custom_tags %}
+{% block content %}
+
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h4 mb-0">
+                        Добавить новость
+                    </h2>
+                </div>
+
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <!-- Основная форма поста -->
+                        {% for field in form %}
+                        <div class="mb-3">
+                            <label class="form-label">
+                                {{ field.label }}
+                                {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                            </label>
+
+                            {% if field.field.widget.input_type == 'select' %}
+                                {{ field|add_class:"form-select" }}
+                            {% elif field.field.widget.input_type == 'checkbox' %}
+                                <div class="form-check">
+                                    {{ field|add_class:"form-check-input" }}
+                                    <label class="form-check-label">{{ field.label }}</label>
+                                </div>
+                            {% elif field.field.widget.input_type == 'textarea' %}
+                                {{ field|add_class:"form-control"|attr:"rows:4" }}
+                            {% else %}
+                                {{ field|add_class:"form-control" }}
+                            {% endif %}
+
+                            {% if field.help_text %}
+                            <div class="form-text text-muted">
+                                <small>{{ field.help_text }}</small>
+                            </div>
+                            {% endif %}
+
+                            {% if field.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in field.errors %}<div>{{ error }}</div>{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+
+                        <!-- Кнопки действий -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-2"></i>Сохранить
+                            </button>
+                            <a href="{% url 'post-list' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle me-2"></i>Отмена
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

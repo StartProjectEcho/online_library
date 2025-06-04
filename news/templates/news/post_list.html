@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% load custom_tags %}
+{% block content %}
+
+<div class="container mt-4 mb-5">  <!-- Добавлен отступ снизу mb-5 -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">
+            Новости
+        </h1>
+
+        {% if user|has_group:"Библиотекарь" %}
+        <a href="{% url 'post-add' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-2"></i>Добавить новость
+        </a>
+        {% endif %}
+    </div>
+
+    <hr class="mb-4">
+
+    {% if posts %}
+    <div class="row g-4">
+        {% for post in posts %}
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <span class="text-muted small">
+                            <i class="bi bi-calendar me-1"></i>
+                            {{ post.published_at|date:"d.m.Y H:i" }}
+                        </span>
+
+                        {% if user|has_group:"Библиотекарь" %}
+                        <div class="btn-group">
+                            <a href="{% url 'post-edit' post.id %}" class="btn btn-sm btn-outline-warning">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'post-delete' post.id %}" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <h3 class="h5 mb-3">{{ post.title }}</h3>
+
+                    {% if post.subtitle %}
+                    <p class="text-muted mb-3">{{ post.subtitle }}</p>
+                    {% endif %}
+
+                    <p class="card-text">{{ post.content|truncatewords:25 }}</p>
+                </div>
+
+                <div class="card-footer bg-white border-0 pt-0">
+                    <a href="{% url 'post-detail' post.id %}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-arrow-right me-1"></i>Подробнее
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info text-center py-5">
+        <i class="bi bi-info-circle fs-1 mb-3"></i>
+        <h4>Новостей пока нет</h4>
+    </div>
+    {% endif %}
+
+    <!-- Пагинация -->
+    {% if is_paginated %}
+    <nav class="mt-5" aria-label="Навигация по страницам">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1" aria-label="Первая">
+                    <span aria-hidden="true">&laquo;&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Предыдущая">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">&laquo;&laquo;</span>
+            </li>
+            <li class="page-item disabled">
+                <span class="page-link">&laquo;</span>
+            </li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <li class="page-item active" aria-current="page">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Следующая">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Последняя">
+                    <span aria-hidden="true">&raquo;&raquo;</span>
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">&raquo;</span>
+            </li>
+            <li class="page-item disabled">
+                <span class="page-link">&raquo;&raquo;</span>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+{% endblock %}

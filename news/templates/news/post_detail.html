@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load custom_tags %}
+{% block content %}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-5">
+                <div class="card-body">
+                    <!-- Заголовок и дата -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted">
+                            <i class="bi bi-calendar me-1"></i>
+                            {{ post.published_at|date:"d.m.Y H:i" }}
+                        </span>
+                        {% if user|has_group:"Библиотекарь" %}
+                        <div>
+                            <a href="{% url 'post-edit' post.id %}" class="btn btn-sm btn-outline-warning me-1">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'post-delete' post.id %}" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Основное содержимое -->
+                    <h1 class="mb-3">{{ post.title }}</h1>
+                    {% if post.subtitle %}
+                    <h3 class="text-muted mb-4">{{ post.subtitle }}</h3>
+                    {% endif %}
+                    <div class="post-content mb-4">
+                        {{ post.content|linebreaks }}
+                    </div>
+
+                    <!-- Кнопки навигации -->
+                    <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+                        <a href="{{ request.META.HTTP_REFERER|default:'/' }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Назад
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .post-content {
+        font-size: 1.1rem;
+        line-height: 1.8;
+    }
+    .post-content img {
+        max-width: 100%;
+        height: auto;
+        margin: 1rem 0;
+        border-radius: 0.25rem;
+    }
+    .cursor-zoom {
+        cursor: zoom-in;
+        transition: transform 0.2s;
+    }
+    .cursor-zoom:hover {
+        transform: scale(1.02);
+    }
+    .gallery-item {
+        transition: transform 0.3s;
+    }
+    .gallery-item:hover {
+        transform: translateY(-5px);
+    }
+</style>
+
+{% endblock %}
