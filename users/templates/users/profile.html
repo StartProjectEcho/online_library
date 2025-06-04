@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load custom_tags %}
+{% block content %}
+
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white text-center">
+                    <h1 class="h4 mb-0">
+                        Личный кабинет
+                    </h1>
+                </div>
+
+                <div class="card-body">
+                    <!-- Информация о пользователе -->
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bi bi-person-badge fs-4 me-3 text-primary"></i>
+                            <div>
+                                <h2 class="h5 mb-0">{{ user.username }}</h2>
+                                <small class="text-muted">Имя пользователя</small>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bi bi-envelope fs-4 me-3 text-primary"></i>
+                            <div>
+                                <p class="mb-0">{{ user.email|default:"Не указана" }}</p>
+                                <small class="text-muted">Электронная почта</small>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-shield-check fs-4 me-3 text-primary"></i>
+                            <div>
+                                <p class="mb-0">
+                                    {% if user|has_group:"Библиотекарь" %}
+                                    <span class="badge bg-warning text-dark">Библиотекарь</span>
+                                    {% else %}
+                                    <span class="badge bg-info">Читатель</span>
+                                    {% endif %}
+                                </p>
+                                <small class="text-muted">Роль в системе</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Статистика -->
+                    <div class="mb-4">
+                        <h3 class="h5 mb-3"><i class="bi bi-book me-2 text-primary"></i>Мои книги</h3>
+                        <div class="row text-center">
+                            <div class="col-3 mb-3">
+                                <div class="card border-primary">
+                                    <a href="{% url 'book-list' %}?status=favorite" class="btn btn-outline-primary">
+                                        <i class="bi bi-heart-fill me-2"></i><br>Любимые книги
+                                        <h5 class="card-title text-primary mb-1">{{ stats.favorite }}</h5>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-3 mb-3">
+                                <div class="card border-info">
+                                    <a href="{% url 'book-list' %}?status=planned" class="btn btn-outline-info">
+                                        <i class="bi bi-calendar-check me-2"></i><br>Книги в планах
+                                        <h5 class="card-title text-info mb-1">{{ stats.planned }}</h5>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-3 mb-3">
+                                <div class="card border-danger">
+                                    <a href="{% url 'book-list' %}?status=abandoned" class="btn btn-outline-danger">
+                                        <i class="bi bi-x-circle me-2"></i><br>Брошенные книги
+                                        <h5 class="card-title text-danger mb-1">{{ stats.abandoned }}</h5>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-3 mb-3">
+                                <div class="card border-success">
+                                    <a href="{% url 'book-list' %}?status=read" class="btn btn-outline-success">
+                                        <i class="bi bi-check-circle me-2"></i><br>Прочитанные книги
+                                        <h5 class="card-title text-success mb-1">{{ stats.read }}</h5>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Кнопки действий -->
+                    <div class="d-flex flex-column flex-md-row justify-content-center gap-3 mt-4">
+                        <a href="{% url 'profile-edit' %}" class="btn btn-warning">
+                            <i class="bi bi-pencil-square me-2"></i>Редактировать профиль
+                        </a>
+                        <a href="{% url 'logout' %}" class="btn btn-danger">
+                            <i class="bi bi-box-arrow-right me-2"></i>Выйти из аккаунта
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock %}

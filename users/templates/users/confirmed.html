@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load custom_tags %}
+{% block content %}
+
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm text-center">
+                <div class="card-header bg-success text-white">
+                    <h2 class="h4 mb-0">
+                        Аккаунт активирован
+                    </h2>
+                </div>
+                
+                <div class="card-body p-5">
+                    <div class="mb-4">
+                        <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                    </div>
+                    
+                    <h3 class="h5 mb-3">Поздравляем!</h3>
+                    <p class="lead">Ваш email успешно подтверждён.</p>
+                    
+                    <div class="alert alert-success mt-4">
+                        <i class="bi bi-check-circle me-2"></i>
+                        Теперь вы можете войти в систему под своей учётной записью.
+                    </div>
+                    
+                    <div class="mt-5">
+                        <a href="{% url 'login' %}" class="btn btn-success">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Войти в систему
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
