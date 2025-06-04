@@ -1,0 +1,657 @@
+{% extends "base.html" %}
+{% load custom_tags %}
+{% now "Y" as current_year %}
+{% block content %}
+
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-10">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h4 mb-0">
+                        {{ title }}
+                    </h2>
+                </div>
+
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" id="book-form">
+                        {% csrf_token %}
+
+                        <!-- Ошибки формы -->
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                <p class="mb-0">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <!-- Обложка -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                {{ form.image.label }}
+                                {% if form.image.field.required %}<span class="text-danger">*</span>{% endif %}
+                            </label>
+
+                            <div class="d-flex flex-wrap align-items-start gap-4 mb-3">
+                                <!-- Текущая обложка -->
+                                {% if form.instance.image %}
+                                <div class="position-relative" id="current-cover-container">
+                                    <p class="fw-bold text-center mb-2">Текущая обложка:</p>
+                                    <div class="position-relative">
+                                        <img src="{{ form.instance.image.url }}" class="img-thumbnail shadow" style="max-height: 300px;">
+                                        <button type="button" class="btn-close-custom" id="delete-cover-btn">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                <!-- Предпросмотр новой обложки -->
+                                <div id="new-image-preview" class="d-none position-relative">
+                                    <p class="fw-bold text-center mb-2">Новая обложка:</p>
+                                    <div class="position-relative d-inline-block">
+                                        <img id="preview-img" class="img-thumbnail shadow" style="max-height: 300px;">
+                                        <button type="button" class="btn-close-custom" id="delete-new-cover-btn">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Поле загрузки файла -->
+                            <input type="file" name="{{ form.image.name }}" class="form-control" id="{{ form.image.id_for_label }}">
+
+                            {% if form.image.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.image.errors %}<div>{{ error }}</div>{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Название -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold" for="{{ form.title.id_for_label }}">
+                                {{ form.title.label }}
+                                <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" name="{{ form.title.name }}" value="{{ form.title.value|default_if_none:'' }}"
+                                   class="form-control" id="{{ form.title.id_for_label }}" required>
+
+                            {% if form.title.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.title.errors %}<div>{{ error }}</div>{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Эпиграф -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold" for="{{ form.epigraph.id_for_label }}">
+                                {{ form.epigraph.label }}
+                            </label>
+                            <textarea name="{{ form.epigraph.name }}" class="form-control"
+                                      id="{{ form.epigraph.id_for_label }}" rows="2">{{ form.epigraph.value|default_if_none:'' }}</textarea>
+
+                            {% if form.epigraph.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.epigraph.errors %}<div>{{ error }}</div>{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Выбранный автор -->
+                        <div class="mb-3" id="selected-author-container"
+                             {% if not form.author.value %}style="display:none;"{% endif %}>
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-primary fs-6 p-2 me-2 d-flex align-items-center" id="selected-author-badge">
+                                    <span id="selected-author-name"></span>
+                                    <button type="button" class="btn-close btn-close-white ms-2" id="clear-author-btn"></button>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Автор с поиском (радио-кнопки) -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                {{ form.author.label }}
+                                <span class="text-danger">*</span>
+                            </label>
+
+                            <div class="input-group mb-2">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" class="form-control" id="author-search" placeholder="Поиск автора...">
+                            </div>
+
+                            <!-- Список авторов скрыт по умолчанию -->
+                            <div class="border rounded p-2 d-none" id="author-list" style="max-height: 200px; overflow-y: auto;">
+                                {% for author in form.author.field.queryset %}
+                                <div class="form-check py-2 ps-5">
+                                    <input class="form-check-input" type="radio" name="{{ form.author.name }}"
+                                           id="author_{{ author.id }}" value="{{ author.id }}" required
+                                           {% if form.author.value|stringformat:"s" == author.id|stringformat:"s" %}checked{% endif %}>
+                                    <label class="form-check-label ms-3" for="author_{{ author.id }}">
+                                        {{ author.name }}
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            {% if form.author.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.author.errors %}<div>{{ error }}</div>{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Выбранные жанры -->
+                        <div class="mb-3">
+                            <div id="selected-genres" class="d-flex flex-wrap gap-2 mb-3">
+                                {% for genre in form.genres.field.queryset %}
+                                    {% if genre.id in form.genres.value %}
+                                    <span class="badge bg-primary d-flex align-items-center fs-6 p-2">
+                                        {{ genre.name }}
+                                        <button type="button" class="btn-close btn-close-white ms-2"
+                                                data-genre-id="{{ genre.id }}"></button>
+                                    </span>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Жанры с поиском (чекбоксы) -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                {{ form.genres.label }}
+                            </label>
+
+                            <div class="input-group mb-2">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" class="form-control" id="genre-search" placeholder="Поиск жанров...">
+                            </div>
+
+                            <!-- Список жанров скрыт по умолчанию -->
+                            <div class="border rounded p-2 d-none" id="genre-list" style="max-height: 200px; overflow-y: auto;">
+                                {% for genre in form.genres.field.queryset %}
+                                <div class="form-check py-2 ps-5">
+                                    <input class="form-check-input genre-checkbox" type="checkbox"
+                                           name="{{ form.genres.name }}" value="{{ genre.id }}"
+                                           id="genre_{{ genre.id }}"
+                                           {% if genre.id in form.genres.value %}checked{% endif %}>
+                                    <label class="form-check-label ms-3" for="genre_{{ genre.id }}">
+                                        {{ genre.name }}
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            {% if form.genres.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.genres.errors %}<div>{{ error }}</div>{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Остальные поля -->
+                        {% for field in form %}
+                            {% if field.name not in 'image title epigraph author genres' %}
+                            <div class="mb-3">
+                                <label class="form-label fw-bold" for="{{ field.id_for_label }}">
+                                    {{ field.label }}
+                                    {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                                </label>
+
+                                {% if field.name == 'publication_year' %}
+                                    <input type="number" name="{{ field.name }}"
+                                           value="{{ field.value|default_if_none:'' }}"
+                                           class="form-control"
+                                           id="{{ field.id_for_label }}"
+                                           min="1000" max="{{ current_year }}"
+                                           oninput="validateYear(this)"
+                                           required>
+
+                                {% elif field.name == 'isbn' %}
+                                    <input type="text" name="{{ field.name }}"
+                                           value="{{ field.value|default_if_none:'' }}"
+                                           class="form-control"
+                                           id="{{ field.id_for_label }}"
+                                           oninput="validateISBN(this)"
+                                           maxlength="13"
+                                           required>
+
+                                {% elif field.name == 'description' %}
+                                    <!-- Специальная обработка для поля описания -->
+                                    <textarea name="{{ field.name }}" class="form-control description-textarea"
+                                              id="{{ field.id_for_label }}" rows="8">{{ field.value|default_if_none:'' }}</textarea>
+
+                                {% elif field.field.widget.input_type == 'select' %}
+                                    <select name="{{ field.name }}" class="form-select" id="{{ field.id_for_label }}">
+                                        {% for option in field %}
+                                            {{ option }}
+                                        {% endfor %}
+                                    </select>
+                                {% elif field.field.widget.input_type == 'checkbox' %}
+                                    <div class="form-check">
+                                        <input type="checkbox" name="{{ field.name }}"
+                                               class="form-check-input" id="{{ field.id_for_label }}"
+                                               {% if field.value %}checked{% endif %}>
+                                    </div>
+                                {% elif field.field.widget.input_type == 'textarea' %}
+                                    <textarea name="{{ field.name }}" class="form-control"
+                                              id="{{ field.id_for_label }}" rows="4">{{ field.value|default_if_none:'' }}</textarea>
+                                {% else %}
+                                    <input type="{{ field.field.widget.input_type }}"
+                                           name="{{ field.name }}"
+                                           value="{{ field.value|default_if_none:'' }}"
+                                           class="form-control"
+                                           id="{{ field.id_for_label }}">
+                                {% endif %}
+
+                                {% if field.help_text %}
+                                <div class="form-text text-muted">
+                                    <small>{{ field.help_text }}</small>
+                                </div>
+                                {% endif %}
+
+                                {% if field.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in field.errors %}<div>{{ error }}</div>{% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                        <!-- Кнопки -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-2"></i>Сохранить
+                            </button>
+                            <a href="{{ request.META.HTTP_REFERER|default:'/' }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>Назад
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-label.fw-bold {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Стили для поля описания */
+    .description-textarea {
+        min-height: 200px;
+        resize: vertical; /* Только вертикальное изменение размера */
+        overflow-y: auto; /* Вертикальный скроллбар при необходимости */
+        width: 100%;
+    }
+
+    .description-textarea:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    #selected-genres .badge, #selected-author-badge {
+        font-size: 1rem;
+        padding: 0.5em 0.75em;
+    }
+
+    .btn-close {
+        opacity: 0.8;
+    }
+
+    .btn-close:hover {
+        opacity: 1;
+    }
+
+    #author-list .form-check, #genre-list .form-check {
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.25rem;
+        transition: background-color 0.2s;
+        position: relative;
+    }
+
+    #author-list .form-check:hover, #genre-list .form-check:hover {
+        background-color: #f8f9fa;
+    }
+
+    .form-check-input {
+        position: absolute;
+        left: 1.5rem;
+        top: 50%;
+        transform: translateY(-50%) scale(1.3);
+    }
+
+    .form-check-label {
+        margin-left: 0.5rem;
+        display: block;
+        width: calc(100% - 2rem);
+    }
+
+    /* Кастомный крестик для обложки */
+    .btn-close-custom {
+        position: absolute;
+        top: -12px;
+        right: -12px;
+        width: 32px;
+        height: 32px;
+        background: #dc3545;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        border: 2px solid white;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        transition: all 0.2s;
+        z-index: 10;
+    }
+
+    .btn-close-custom:hover {
+        background: #bb2d3b;
+        transform: scale(1.1);
+    }
+
+    .img-thumbnail {
+        transition: transform 0.3s;
+    }
+
+    .img-thumbnail:hover {
+        transform: scale(1.02);
+    }
+
+    .shadow {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    /* Стиль для невалидных полей */
+    input:invalid, textarea:invalid {
+        border-color: #dc3545;
+    }
+
+    input:invalid:focus, textarea:invalid:focus {
+        box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
+    }
+
+    /* Стили для выпадающих списков */
+    .author-item, .genre-item {
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .author-item:hover, .genre-item:hover {
+        background-color: #f8f9fa;
+    }
+</style>
+
+<script>
+// Функции валидации
+function validateYear(input) {
+    const year = parseInt(input.value);
+    const currentYear = new Date().getFullYear();
+
+    if (input.value.length > 4) {
+        input.value = input.value.slice(0, 4);
+    }
+
+    if (year > currentYear) {
+        input.setCustomValidity('Год не может быть больше текущего');
+    } else {
+        input.setCustomValidity('');
+    }
+}
+
+function validateISBN(input) {
+    // Оставляем только цифры
+    input.value = input.value.replace(/\D/g, '');
+
+    // Ограничиваем длину до 13 символов
+    if (input.value.length > 13) {
+        input.value = input.value.slice(0, 13);
+    }
+
+    if (input.value.length < 13) {
+        input.setCustomValidity('ISBN должен содержать ровно 13 цифр');
+    } else {
+        input.setCustomValidity('');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // === Обработка автора ===
+    const authorContainer = document.getElementById('selected-author-container');
+    const authorSearch = document.getElementById('author-search');
+    const authorList = document.getElementById('author-list');
+    const authorNameEl = document.getElementById('selected-author-name');
+    const clearAuthorBtn = document.getElementById('clear-author-btn');
+
+    // Показ списка авторов при фокусе
+    if (authorSearch) {
+        authorSearch.addEventListener('focus', function() {
+            authorList.classList.remove('d-none');
+        });
+    }
+
+    // Скрытие списка при клике вне области
+    document.addEventListener('click', function(e) {
+        if (!authorSearch?.contains(e.target) && !authorList?.contains(e.target)) {
+            authorList?.classList.add('d-none');
+        }
+    });
+
+    // Поиск авторов
+    if (authorSearch && authorList) {
+        authorSearch.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const authors = authorList.querySelectorAll('.form-check');
+
+            authors.forEach(author => {
+                const label = author.querySelector('.form-check-label');
+                const text = label.textContent.toLowerCase();
+                author.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+    }
+
+    // Обновление выбранного автора
+    const authorRadios = document.querySelectorAll('input[name="{{ form.author.name }}"]');
+    authorRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            const selectedAuthor = document.querySelector('input[name="{{ form.author.name }}"]:checked');
+
+            if (selectedAuthor) {
+                const authorName = selectedAuthor.nextElementSibling.textContent;
+                authorNameEl.textContent = authorName;
+                authorContainer.style.display = 'block';
+            } else {
+                authorContainer.style.display = 'none';
+            }
+        });
+    });
+
+    // Очистка выбора автора
+    if (clearAuthorBtn) {
+        clearAuthorBtn.addEventListener('click', function() {
+            authorRadios.forEach(radio => {
+                radio.checked = false;
+            });
+            authorContainer.style.display = 'none';
+        });
+    }
+
+    // === Обработка жанров ===
+    const genreSearch = document.getElementById('genre-search');
+    const genreList = document.getElementById('genre-list');
+    const selectedGenres = document.getElementById('selected-genres');
+
+    // Показ списка жанров при фокусе
+    if (genreSearch) {
+        genreSearch.addEventListener('focus', function() {
+            genreList.classList.remove('d-none');
+        });
+    }
+
+    // Скрытие списка при клике вне области
+    document.addEventListener('click', function(e) {
+        if (!genreSearch?.contains(e.target) && !genreList?.contains(e.target)) {
+            genreList?.classList.add('d-none');
+        }
+    });
+
+    // Поиск жанров
+    if (genreSearch && genreList) {
+        genreSearch.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const genres = genreList.querySelectorAll('.form-check');
+
+            genres.forEach(genre => {
+                const label = genre.querySelector('.form-check-label');
+                const text = label.textContent.toLowerCase();
+                genre.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+    }
+
+    // Управление выбранными жанрами
+    const genreCheckboxes = document.querySelectorAll('.genre-checkbox');
+
+    // Инициализация выбранных жанров
+    function updateSelectedGenres() {
+        selectedGenres.innerHTML = '';
+
+        genreCheckboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+                const genreId = checkbox.value;
+                const genreName = checkbox.nextElementSibling.textContent;
+
+                const badge = document.createElement('span');
+                badge.className = 'badge bg-primary d-flex align-items-center fs-6 p-2';
+                badge.innerHTML = `
+                    ${genreName}
+                    <button type="button" class="btn-close btn-close-white ms-2"
+                            data-genre-id="${genreId}"></button>
+                `;
+                selectedGenres.appendChild(badge);
+            }
+        });
+
+        // Добавляем обработчики для кнопок удаления
+        document.querySelectorAll('#selected-genres .btn-close').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const genreId = this.getAttribute('data-genre-id');
+                const checkbox = document.querySelector(`.genre-checkbox[value="${genreId}"]`);
+                if (checkbox) {
+                    checkbox.checked = false;
+                    updateSelectedGenres();
+                }
+            });
+        });
+    }
+
+    // Обновление при изменении выбора жанров
+    genreCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateSelectedGenres);
+    });
+
+    // Инициализация при загрузке
+    updateSelectedGenres();
+
+    // === Управление обложкой ===
+    const deleteCoverBtn = document.getElementById('delete-cover-btn');
+    const imageInput = document.getElementById('{{ form.image.id_for_label }}');
+    const newImagePreview = document.getElementById('new-image-preview');
+    const previewImg = document.getElementById('preview-img');
+    const deleteNewCoverBtn = document.getElementById('delete-new-cover-btn');
+
+    // Ссылка на скрытое поле для удаления текущей обложки
+    let clearCoverInput = null;
+
+    // Удаление текущей обложки
+    if (deleteCoverBtn) {
+        deleteCoverBtn.addEventListener('click', function() {
+            const container = document.getElementById('current-cover-container');
+            container.style.display = 'none';
+
+            // Создаем скрытое поле для удаления обложки
+            if (!clearCoverInput) {
+                clearCoverInput = document.createElement('input');
+                clearCoverInput.type = 'hidden';
+                clearCoverInput.name = 'image-clear';
+                clearCoverInput.value = '1';
+                document.getElementById('book-form').appendChild(clearCoverInput);
+            }
+
+            // Сбрасываем поле загрузки файла и скрываем предпросмотр новой обложки
+            imageInput.value = '';
+            newImagePreview.classList.add('d-none');
+        });
+    }
+
+    // Удаление новой обложки
+    if (deleteNewCoverBtn) {
+        deleteNewCoverBtn.addEventListener('click', function() {
+            // Очищаем поле ввода файла
+            imageInput.value = '';
+            // Скрываем предпросмотр
+            newImagePreview.classList.add('d-none');
+        });
+    }
+
+    // Предпросмотр новой обложки
+    if (imageInput) {
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    newImagePreview.classList.remove('d-none');
+                };
+                reader.readAsDataURL(file);
+
+                // Удаляем флаг очистки при загрузке нового файла
+                if (clearCoverInput) {
+                    clearCoverInput.remove();
+                    clearCoverInput = null;
+                }
+            } else {
+                newImagePreview.classList.add('d-none');
+            }
+        });
+    }
+
+    // Инициализация валидации для полей
+    const yearField = document.querySelector('input[name="publication_year"]');
+    if (yearField) {
+        yearField.addEventListener('input', function() {
+            validateYear(this);
+        });
+        // Инициализация при загрузке
+        validateYear(yearField);
+    }
+
+    const isbnField = document.querySelector('input[name="isbn"]');
+    if (isbnField) {
+        isbnField.addEventListener('input', function() {
+            validateISBN(this);
+        });
+        // Инициализация при загрузке
+        validateISBN(isbnField);
+    }
+
+    // Инициализация выбранного автора при загрузке
+    const selectedAuthor = document.querySelector('input[name="{{ form.author.name }}"]:checked');
+    if (selectedAuthor) {
+        const authorName = selectedAuthor.nextElementSibling.textContent;
+        authorNameEl.textContent = authorName;
+        authorContainer.style.display = 'block';
+    }
+});
+</script>
+
+{% endblock %}

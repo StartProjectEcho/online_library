@@ -1,0 +1,251 @@
+<!-- templates/books/book_detail.html -->
+{% extends "base.html" %}
+{% load custom_tags %}
+{% block content %}
+<div class="container mt-4 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Основная карточка книги -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <a href="{% url 'book-list' %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-arrow-left me-1"></i>Назад
+                        </a>
+                        {% if user|has_group:"Библиотекарь" %}
+                            <div class="btn-group">
+                                <a href="{% url 'book-edit' book.pk %}" class="btn btn-sm btn-outline-warning">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'book-delete' book.pk %}" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                         {% endif %}
+                    </div>
+                    <!-- Обложка -->
+                    <div class="text-center mb-4">
+                        {% if book.image %}
+                        <img src="{{ book.image.url }}" alt="Обложка {{ book.title }}" class="img-fluid rounded shadow" style="max-height: 400px;">
+                        {% else %}
+                        <img src="/media/book_covers/standart_foto.png" alt="Стандартная обложка" class="img-fluid rounded shadow" style="max-height: 400px;">
+                        {% endif %}
+                    </div>
+
+                    <!-- Заголовок и автор -->
+                    <h1 class="text-center h3 mb-3">{{ book.title }}</h1>
+
+                    <!-- Эпиграф -->
+                    {% if book.epigraph %}
+                        <div class="alert alert-light border-start border-3 border-warning mb-4">
+                            <i class="bi bi-chat-left-quote me-2"></i>{{ book.epigraph }}
+                        </div>
+                    {% endif %}
+
+                    <!-- Описание -->
+                    <div class="mb-4">
+                        <h5 class="mb-3">Описание</h5>
+                        <p class="lead">{{ book.description|default:"Описание отсутствует" }}</p>
+                    </div>
+
+                    <!-- Детали книги -->
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-person-fill text-primary me-2"></i>
+                                <small>Автор: {{ book.author.name }}</small>
+                            </div>
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-calendar-event me-2 text-primary"></i>
+                                <small>Год издания: {{ book.publication_year }}</small>
+                            </div>
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-upc me-2 text-primary"></i>
+                                <small>ISBN: {{ book.isbn }}</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-star-fill me-2 text-warning"></i>
+                                <small>Средняя оценка: {{ book.get_average_rating|floatformat }}</small>
+                            </div>
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-shield-check me-2 text-success"></i>
+                                <small>Возрастной рейтинг: {{ book.get_age_rating_display }}</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Жанры -->
+                    <div class="mt-4">
+                        <h5 class="mb-3">Жанры</h5>
+                        {% if book.genres.all %}
+                            <div class="d-flex flex-wrap gap-2">
+                                {% for genre in book.genres.all %}
+                                    <span class="badge bg-light text-dark border rounded-pill px-3 py-2">
+                                        {{ genre.name }}
+                                    </span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-light border py-3 mb-0">
+                                Информация о жанрах отсутствует
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Метки пользователя -->
+            {% if user.is_authenticated %}
+            <div class="card shadow-sm mb-4 align-items-center">
+                <div class="card-body">
+                    <form action="{% url 'update-book-status' book.id %}" method="post">
+                        {% csrf_token %}
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for status_code, status_label in status_choices %}
+                                <button type="submit" name="status" value="{{ status_code }}"
+                                        class="btn btn-sm {% if user_status and user_status.status == status_code %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                                    {{ status_label }}
+                                </button>
+                            {% endfor %}
+                            <button type="submit" name="remove" value="1" class="btn btn-sm btn-outline-danger">
+                                Убрать метку
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Отзывы -->
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h2 class="h5 mb-3">Отзывы</h2>
+
+                    <!-- Сообщение о существующем отзыве -->
+                    {% if user.is_authenticated %}
+                        {% if user_review %}
+                            <div class="alert alert-info mb-3">
+                                <i class="bi bi-info-circle me-2"></i>Вы уже оставили отзыв
+                            </div>
+                        {% else %}
+                            <a href="{% url 'review-add' book.id %}" class="btn btn-success btn-sm mb-3 w-100">
+                                <i class="bi bi-chat-dots me-2"></i>Оставить отзыв
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        <div class="alert alert-secondary mb-3">
+                            <i class="bi bi-person-circle me-2"></i>
+                            <a href="{% url 'login' %}" class="text-decoration-none">Авторизуйтесь</a>, чтобы оставить отзыв
+                        </div>
+                    {% endif %}
+
+                    <!-- Список отзывов -->
+                    <div class="reviews">
+                        {% if page_obj %}
+                            {% for review in page_obj %}
+                                <div class="card shadow-sm mb-2">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex justify-content-between align-items-start mb-3">
+                                            <div>
+                                                <h6 class="mb-0">{{ review.user.username }}</h6>
+                                                <small class="text-muted">{{ review.created_at|date:"d.m.Y H:i" }}</small>
+                                            </div>
+                                            <div class="rating-badge badge text-warning d-flex align-items-center px-3 py-2">
+                                                {{ review.get_rating_display }}
+                                            </div>
+                                        </div>
+                                        <p class="card-text mb-3">{{ review.comment }}</p>
+                                        {% if user == review.user %}
+                                            <div class="d-flex gap-2">
+                                                <a href="{% url 'review-edit' review.id %}" class="btn btn-outline-primary btn-sm">
+                                                    <i class="bi bi-pencil"></i> Редактировать
+                                                </a>
+                                                <a href="{% url 'review-delete' review.id %}" class="btn btn-outline-danger btn-sm">
+                                                    <i class="bi bi-trash"></i> Удалить
+                                                </a>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="alert alert-light border text-center py-4 mb-3">
+                                <i class="bi bi-emoji-frown fs-1 me-2"></i><br>Нет отзывов
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Пагинация -->
+                    {% if is_paginated %}
+                        <nav aria-label="Пагинация отзывов" class="mt-3">
+                            <ul class="pagination justify-content-center mb-0">
+                                <!-- Предыдущая страница -->
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1">&laquo; &laquo;</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo;</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link">&laquo;&laquo;</span>
+                                    </li>
+                                    <li class="page-item disabled">
+                                        <span class="page-link">&laquo;</span>
+                                    </li>
+                                {% endif %}
+                                <!-- Номера страниц -->
+                                {% for num in page_obj.paginator.page_range %}
+                                    {% if num > page_obj.number|add:"-2" and num < page_obj.number|add:"+2" %}
+                                        <li class="page-item {% if num == page_obj.number %}active{% endif %}">
+                                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                        </li>
+                                    {% elif num == page_obj.paginator.page_range|last %}
+                                        <li class="page-item disabled">
+                                            <span class="page-link">...</span>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                                <!-- Следующая страница -->
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">&raquo;</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">&raquo;&raquo;</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link">&raquo;</span>
+                                    </li>
+                                    <li class="page-item disabled">
+                                        <span class="page-link">&raquo; &raquo;</span>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .reviews .card {
+        transition: transform 0.2s;
+    }
+    .reviews .card:hover {
+        transform: translateY(-5px);
+    }
+    .page-item.active .page-link {
+        background-color: #ffc107;
+        border-color: #ffc107;
+        color: #212529;
+    }
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+{% endblock %}

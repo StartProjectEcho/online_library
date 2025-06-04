@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% load custom_tags %}
+{% block content %}
+
+<div class="container mt-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">
+            Авторы
+        </h1>
+
+        {% if user|has_group:"Библиотекарь" %}
+        <a href="{% url 'author-add' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-2"></i>Добавить автора
+        </a>
+        {% endif %}
+    </div>
+
+    <hr class="mb-4">
+
+    <!-- Поисковая форма -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-center">
+                <div class="col-md-9">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" name="q" value="{{ request.GET.q }}"
+                               class="form-control" placeholder="Поиск по имени автора...">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-search me-2"></i>Найти
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Список авторов -->
+    {% if authors %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
+        {% for author in authors %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-person me-1"></i>{{ author.name }}
+                    </h5>
+                    <p class="card-text text-muted small mb-0">
+                        Книг: {{ author.book_set.count }}
+                    </p>
+                </div>
+
+                <div class="card-footer bg-white border-0 pt-0">
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'author-detail' author.pk %}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-info-circle me-1"></i>Подробнее
+                        </a>
+
+                        {% if user|has_group:"Библиотекарь" %}
+                        <div class="btn-group">
+                            <a href="{% url 'author-edit' author.pk %}" class="btn btn-sm btn-outline-warning">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'author-delete' author.pk %}" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info text-center py-5">
+        <i class="bi bi-info-circle fs-1 mb-3"></i>
+        <h4>Авторы не найдены</h4>
+        <p class="mb-0">Попробуйте изменить поисковый запрос</p>
+    </div>
+    {% endif %}
+
+    <!-- Пагинация -->
+    {% if is_paginated %}
+    <nav class="mt-5" aria-label="Навигация по страницам">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?{% query_transform page=1 %}" aria-label="Первая">
+                    <span aria-hidden="true">&laquo;&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?{% query_transform page=page_obj.previous_page_number %}" aria-label="Предыдущая">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">&laquo;&laquo;</span>
+            </li>
+            <li class="page-item disabled">
+                <span class="page-link">&laquo;</span>
+            </li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <li class="page-item active" aria-current="page">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% query_transform page=num %}">{{ num }}</a>
+                </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?{% query_transform page=page_obj.next_page_number %}" aria-label="Следующая">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?{% query_transform page=page_obj.paginator.num_pages %}" aria-label="Последняя">
+                    <span aria-hidden="true">&raquo; &raquo;</span>
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">&raquo;</span>
+            </li>
+            <li class="page-item disabled">
+                <span class="page-link">&raquo; &raquo;</span>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+{% endblock %}
