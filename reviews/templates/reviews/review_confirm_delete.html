@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load custom_tags %}
+{% block content %}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h2 class="h4 mb-0">
+                        <i class="bi bi-exclamation-triangle me-2"></i>Удаление отзыва
+                    </h2>
+                </div>
+
+                <div class="card-body">
+                    <h3 class="h5 mb-4">Вы уверены, что хотите удалить свой отзыв?</h3>
+
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <strong>Внимание:</strong> Отзыв будет удален без возможности восстановления.
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <div class="d-flex align-items-start">
+                                <div class="flex-grow-1">
+                                    <h5 class="card-title">
+                                        {{ object.user.username }}
+                                        <span class="badge bg-primary">
+                                            {{ object.get_rating_display }}
+                                        </span>
+                                    </h5>
+                                    <p class="card-text">{{ object.text|truncatechars:150 }}</p>
+                                    <small class="text-muted">
+                                        {{ object.created_at|date:"d.m.Y H:i" }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'book-detail' pk=book_id %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>Вернуться к книге
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash me-2"></i>Удалить отзыв
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

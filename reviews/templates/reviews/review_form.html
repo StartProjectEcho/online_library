@@ -1,0 +1,113 @@
+{% block content %}
+<style>
+.rating-stars {
+    display: flex;
+    gap: 10px;
+    font-size: 2rem;
+    cursor: pointer;
+}
+
+.rating-stars input[type="radio"] {
+    display: none;
+}
+
+.rating-star {
+    transition: color 0.2s;
+    color: #ccc;
+    cursor: pointer;
+}
+
+.rating-stars input[type="radio"]:checked ~ .rating-star,
+.rating-stars input[type="radio"]:hover ~ .rating-star {
+    color: #ffd700;
+}
+</style>
+
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h4 mb-0">
+                        {% if object %}Редактирование отзыва{% else %}Новый отзыв{% endif %}
+                    </h2>
+                </div>
+
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        {% for field in form %}
+                        {% if field.name == 'rating' %}
+                        <div class="mb-3">
+                            <label class="form-label">
+                                {{ field.label }}
+                                {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                            </label>
+
+                            <div class="rating-stars">
+                                {% for i in "12345" %}
+                                    {% with forloop.counter as star_value %}
+                                        <div class="rating-star-container">
+                                            <input type="radio" id="rating_{{ star_value }}" name="rating" value="{{ star_value }}" required
+                                                {% if field.value|stringformat:"s" == star_value|stringformat:"s" %}checked{% endif %}>
+                                            <label class="rating-star" for="rating_{{ star_value }}">
+                                                <i class="bi bi-star-fill"></i>
+                                            </label>
+                                        </div>
+                                    {% endwith %}
+                                {% endfor %}
+                            </div>
+
+                            {% if field.help_text %}
+                            <div class="form-text">
+                                {{ field.help_text }}
+                            </div>
+                            {% endif %}
+
+                            {% for error in field.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ error }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="mb-3">
+                            <label class="form-label">
+                                {{ field.label }}
+                                {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                            </label>
+
+                            {{ field|add_class:"form-control" }}
+
+                            {% if field.help_text %}
+                            <div class="form-text">
+                                {{ field.help_text }}
+                            </div>
+                            {% endif %}
+
+                            {% for error in field.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ error }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-send me-2"></i>
+                                {% if object %}Обновить{% else %}Опубликовать{% endif %}
+                            </button>
+                            <a href="{% url 'book-detail' pk=book_id %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>Вернуться к книге
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
