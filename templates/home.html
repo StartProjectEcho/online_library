@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% load custom_tags %}
+{% block content %}
+{% load tz %}
+
+<div class="container mt-4">
+    <!-- Приветственная секция -->
+    <div class="text-center mb-5">
+        {% if user.is_authenticated %}
+        <h1 class="display-4 text-primary">Добро пожаловать, {{ user.username }}!</h1>
+        <p class="lead">Рады видеть вас снова</p>
+        {% else %}
+        <h1 class="display-4 text-primary">Добро пожаловать!</h1>
+        <div class="alert alert-info mt-3">
+            <p class="mb-0">Вы не авторизованы. Пожалуйста,
+                <a href="{% url 'login' %}" class="alert-link">войдите</a> или
+                <a href="{% url 'register' %}" class="alert-link">зарегистрируйтесь</a>.
+            </p>
+        </div>
+        {% endif %}
+    </div>
+
+    <hr class="my-5">
+
+    <!-- О библиотеке -->
+    <div class="about-section bg-light p-4 rounded shadow mb-5">
+        <div class="row">
+            <div class="col-md-6">
+                <h2 class="mb-4 text-success">О нашей библиотеке</h2>
+                <p class="lead text-muted">Ваш персональный доступ к миру литературы!</p>
+
+                <p>Онлайн-библиотека открыла свои двери в 2025 году с целью сделать чтение доступным для
+                    каждого.</p>
+                <p class="fw-bold">Сегодня у нас:</p>
+
+                <ul class="list-group list-group-flush mb-4">
+                    <li class="list-group-item bg-light">
+                        <i class="bi bi-book me-2 text-primary"></i>
+                        <strong>10,000+</strong> книг различных жанров
+                    </li>
+                    <li class="list-group-item bg-light">
+                        <i class="bi bi-people me-2 text-primary"></i>
+                        <strong>500+</strong> авторов в коллекции
+                    </li>
+                    <li class="list-group-item bg-light">
+                        <i class="bi bi-globe me-2 text-primary"></i>
+                        <strong>24/7</strong> доступ из любой точки мира
+                    </li>
+                    <li class="list-group-item bg-light">
+                        <i class="bi bi-headphones me-2 text-primary"></i>
+                        <strong>Аудиокниги</strong> и электронные версии
+                    </li>
+                </ul>
+
+                <p>Мы регулярно пополняем коллекцию новинками и редкими изданиями. Присоединяйтесь к нашему сообществу
+                    читателей!</p>
+            </div>
+
+            <div class="col-md-6">
+                <h5 class="mb-3 text-success">Читальный зал</h5>
+                <p><i class="bi bi-geo-alt me-2"></i>г. Незнайкин, n-й Неизвестный пер., nn</p>
+
+                <!-- Карта -->
+                <div class="ratio ratio-16x9 mb-4 border rounded">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d43999257.76718919!2d63.29634800660669!3d47.6940989545819!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x453c569a896724fb%3A0x1409fdf86611f613!2z0KDQvtGB0YHQuNGP!5e0!3m2!1sru!2sru!4v1748634576835!5m2!1sru!2sru"
+                            style="border:0;" allowfullscreen loading="lazy"
+                            referrerpolicy="no-referrer-when-downgrade"></iframe>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <i class="bi bi-clock text-info"></i> Часы работы
+                                </h5>
+                                <p class="card-text mb-0">Пн-Пт: 9:00-21:00</p>
+                                <p class="card-text">Сб-Вс: 10:00-18:00</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <i class="bi bi-telephone text-info"></i> Контакты
+                                </h5>
+                                <p class="card-text mb-0">+7 (***) ***-**-**</p>
+                                <p class="card-text">anny.tar.3107@gmail.com</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr class="my-5">
+
+    <!-- Новости -->
+    <div class="mb-5">
+        <h2 class="mb-4 text-center text-success">Последние новости</h2>
+
+        <div class="row g-4 justify-content-center">
+            {% if recent_posts %}
+            {% for post in recent_posts %}
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h4 class="card-title">{{ post.title }}</h4>
+                        <h6 class="card-subtitle mb-2 text-muted">{{ post.subtitle|default:"" }}</h6>
+                        <p class="card-text">
+                            <small class="text-muted">
+                                <i class="bi bi-calendar me-1"></i>
+                                {{ post.published_at|localtime|date:"d.m.Y H:i" }}
+                            </small>
+                        </p>
+                    </div>
+                    <div class="card-footer bg-white border-0">
+                        <a href="{% url 'post-detail' post.id %}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-info-circle me-1"></i>Подробнее
+                        </a>
+                        {% if user|has_group:"Библиотекарь" %}
+                        <div class="mt-2">
+                            <a href="{% url 'post-edit' post.id %}" class="btn btn-sm btn-outline-warning me-1">
+                                <i class="bi bi-pencil me-1"></i>Редактировать
+                            </a>
+                            <a href="{% url 'post-delete' post.id %}" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash me-1"></i>Удалить
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="col-12">
+                <div class="alert alert-warning text-center py-4">
+                    <i class="bi bi-exclamation-circle fs-3"></i>
+                    <p class="h5 mt-3">Пока здесь ничего нет!</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
