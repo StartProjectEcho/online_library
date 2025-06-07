@@ -27,7 +27,7 @@
                         <!-- Поле имени пользователя -->
                         <div class="mb-4">
                             <label for="id_username" class="form-label">
-                                <i class="bi bi-person me-1"></i>Имя пользователя
+                                <i class="bi bi-person me-1"></i>Почта пользователя
                             </label>
                             <div class="input-group">
                                 <span class="input-group-text">
@@ -35,7 +35,7 @@
                                 </span>
                                 <input type="text" name="username" id="id_username"
                                        class="form-control {% if form.username.errors %}is-invalid{% endif %}"
-                                       placeholder="Введите имя пользователя"
+                                       placeholder="Введите почту пользователя"
                                        value="{{ form.username.value|default:'' }}"
                                        required autofocus>
                             </div>
