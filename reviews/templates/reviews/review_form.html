@@ -1,6 +1,35 @@
 {% extends "base.html" %}
+{% load static %}
 {% load custom_tags %}
 {% block content %}
+
+<!-- Добавляем CSS для звездочного рейтинга -->
+<style>
+    .rating-input {
+        unicode-bidi: bidi-override;
+        direction: rtl;
+        text-align: left;
+    }
+    .rating-input > input {
+        display: none;
+    }
+    .rating-input > label {
+        display: inline-block;
+        font-size: 2rem;
+        padding: 0 0.1rem;
+        cursor: pointer;
+        color: #ccc;
+        transition: color 0.2s;
+    }
+    .rating-input > label:hover,
+    .rating-input > label:hover ~ label,
+    .rating-input > input:checked ~ label {
+        color: #ffc107; /* Золотой цвет для выбранных звезд */
+    }
+    .rating-input > input:checked + label {
+        color: #fd4; /* Более яркий цвет для активной звезды */
+    }
+</style>
 
 <div class="container mt-5 mb-5">
     <div class="row justify-content-center">
@@ -18,24 +47,57 @@
 
                         {% for field in form %}
                         <div class="mb-3">
-                            <label class="form-label">
-                                {{ field.label }}
-                                {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
-                            </label>
+                            {% if field.name == 'rating' %}
+                                <!-- Кастомный вывод для поля рейтинга -->
+                                <label class="form-label">
+                                    {{ field.label }}
+                                    {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                                </label>
 
-                            {{ field|add_class:"form-control" }}
+                                <div class="rating-input">
+                                    {% for i in "54321" %}
+                                        {% with i_num=i|add:"0" %}
+                                        <input type="radio" id="id_rating_{{ i_num }}"
+                                               name="{{ field.name }}"
+                                               value="{{ i_num }}"
+                                               {% if field.value|add:"0" == i_num %}checked{% endif %}>
+                                        <label for="id_rating_{{ i_num }}">★</label>
+                                        {% endwith %}
+                                    {% endfor %}
+                                </div>
 
-                            {% if field.help_text %}
-                            <div class="form-text">
-                                {{ field.help_text }}
-                            </div>
+                                {% if field.help_text %}
+                                <div class="form-text">
+                                    {{ field.help_text }}
+                                </div>
+                                {% endif %}
+
+                                {% for error in field.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ error }}
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <!-- Стандартный вывод для остальных полей -->
+                                <label class="form-label">
+                                    {{ field.label }}
+                                    {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                                </label>
+
+                                {{ field|add_class:"form-control" }}
+
+                                {% if field.help_text %}
+                                <div class="form-text">
+                                    {{ field.help_text }}
+                                </div>
+                                {% endif %}
+
+                                {% for error in field.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ error }}
+                                </div>
+                                {% endfor %}
                             {% endif %}
-
-                            {% for error in field.errors %}
-                            <div class="invalid-feedback d-block">
-                                {{ error }}
-                            </div>
-                            {% endfor %}
                         </div>
                         {% endfor %}
 
