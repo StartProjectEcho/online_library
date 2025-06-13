@@ -15,5 +15,6 @@ urlpatterns = [
     path('reviews/', include('reviews.urls')),
     path('', HomePageView.as_view(), name='home'),
     path('dashboard/', DashboardView.as_view(), name='dashboard'),
+    path('recommendations/', include('recommendations.urls')),
     path('no-permission/', NoPermissionView.as_view(), name='no_permission'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

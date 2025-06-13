@@ -37,14 +37,24 @@ class Book(models.Model):
 
     title = models.CharField(max_length=200, unique=True)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
-    genres = models.ManyToManyField('Genre', blank=True)  # Теперь несколько жанров
+    genres = models.ManyToManyField('Genre', blank=True)
     description = models.TextField(blank=True, null=True)
     publication_year = models.PositiveIntegerField()
     isbn = models.CharField(max_length=13, unique=True)
     age_rating = models.CharField(max_length=3, choices=AGE_RATINGS, default='12+')
-    image = models.ImageField(upload_to='book_covers/', blank=True, null=True)  # Фото обложки
-    epigraph = models.TextField(blank=True, null=True)  # Эпиграф (необязательное поле)
+    image = models.ImageField(
+        upload_to='book_covers/',
+        blank=True,
+        null=True,
+        default='book_covers/standart_foto.png'
+    )
+    epigraph = models.TextField(blank=True, null=True)
     added_at = models.DateTimeField(auto_now_add=True)
+
+    def get_image_url(self):
+        if self.image and hasattr(self.image, 'url'):
+            return self.image.url
+        return '/media/book_covers/standart_foto.png'
 
     def save(self, *args, **kwargs):
         if self.pk:
@@ -57,6 +67,15 @@ class Book(models.Model):
     def get_average_rating(self):
         avg = self.reviews.aggregate(rating_avg=Avg('rating'))['rating_avg']
         return round(avg, 1) if avg else 0
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['publication_year']),
+            models.Index(fields=['title']),
+        ]
+
+    def __str__(self):
+        return self.title
 
 @receiver(post_delete, sender=Book)
 def delete_book_cover_on_delete(sender, instance, **kwargs):

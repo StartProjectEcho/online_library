@@ -1,3 +1,4 @@
+
 {% extends "base.html" %}
 {% load custom_tags %}
 {% block content %}
@@ -18,11 +19,10 @@
             </button>
         </div>
     </div>
-
     <hr class="mb-4">
-
     <!-- Выдвижная форма фильтрации -->
-        <div class="collapse{% if request.GET %} show{% endif %} mb-4" id="filterForm">        <div class="card shadow-sm">
+    <div class="collapse{% if request.GET %} show{% endif %} mb-4" id="filterForm">
+        <div class="card shadow-sm">
             <div class="card-body">
                 <form method="get" class="row g-3">
                     <!-- Название -->
@@ -178,9 +178,6 @@
             </div>
         </div>
     </div>
-
-
-
     <!-- Список книг -->
     {% if books %}
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
@@ -190,11 +187,11 @@
                 <!-- Контейнер обложки -->
                 <div class="card-img-top text-center p-3 position-relative">
                     {% if book.image %}
-                    <img src="{{ book.image.url }}" alt="Обложка книги {{ book.title }}"
-                         class="img-fluid" style="max-height: 200px;">
+                        <img src="{{ book.image.url }}" alt="Обложка книги {{ book.title }}"
+                             class="img-fluid" style="max-height: 200px;">
                     {% else %}
-                    <img src="/media/book_covers/standart_foto.png" alt="Стандартная обложка"
-                         class="img-fluid" style="max-height: 200px;">
+                        <img src="/media/book_covers/standart_foto.png" alt="Стандартная обложка"
+                             class="img-fluid" style="max-height: 200px;">
                     {% endif %}
                     <!-- Бейдж статуса -->
                     {% if books_with_status|get_item:book.id %}
@@ -270,7 +267,6 @@
         <p class="mb-0">Попробуйте изменить параметры фильтрации</p>
     </div>
     {% endif %}
-
     <!-- Пагинация -->
     {% if is_paginated %}
     <nav class="mt-5" aria-label="Навигация по страницам">
@@ -327,191 +323,366 @@
         </ul>
     </nav>
     {% endif %}
+    <!-- ТОП-5 книг -->
+    <hr class="mt-5">
+    <h3>ТОП 5 книг</h3>
+    <div id="topCarousel" class="carousel slide" data-bs-interval="false">
+        <div class="carousel-inner">
+            {% for book_group in top_books|slice_groups:3 %}
+            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                <div class="row g-4">
+                    {% for book in book_group %}
+                    <div class="col">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-img-top text-center p-3 position-relative">
+                                {% if book.image %}
+                                    <img src="{{ book.image.url }}" class="img-fluid" style="max-height: 200px;">
+                                {% else %}
+                                    <img src="/media/book_covers/standart_foto.png" class="img-fluid" style="max-height: 200px;">
+                                {% endif %}
+                            </div>
+                            <div class="text-center">
+                                {{ book.get_average_rating|floatformat }} <i class="bi bi-star-fill me-2 text-warning"></i>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title">{{ book.title }}</h5>
+                                <p class="card-text">{{ book.author.name }}</p>
+                                <div class="d-flex justify-content-between">
+                                    <span class="badge bg-secondary">
+                                        <i class="bi bi-calendar me-1"></i>{{ book.publication_year }}
+                                    </span>
+                                    <span class="badge bg-info">
+                                        {{ book.get_age_rating_display }}
+                                    </span>
+                                </div>
+                                <div class="mt-2">
+                                    {% for genre in book.genres.all %}
+                                    <span class="badge bg-light text-dark border rounded-pill me-1">{{ genre.name }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="card-footer bg-white border-0 pt-0">
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'book-detail' book.pk %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-info-circle me-1"></i>Подробнее
+                                    </a>
+                                    {% if user|has_group:"Библиотекарь" %}
+                                    <div class="btn-group">
+                                        <a href="{% url 'book-edit' book.pk %}" class="btn btn-sm btn-outline-warning">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a href="{% url 'book-delete' book.pk %}" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="carousel-item active">
+                <div class="alert alert-info">Нет книг для отображения</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% if top_books|length > 3 %}
+        <button class="carousel-control-prev" type="button" data-bs-target="#topCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#topCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        </button>
+        {% endif %}
+    </div>
+    <!-- Персонализированные рекомендации -->
+    {% if user.is_authenticated and user_recs %}
+    <h3 class="mt-5">Ваши рекомендации</h3>
+    <div id="userRecommendCarousel" class="carousel slide" data-bs-interval="false">
+        <div class="carousel-inner">
+            {% for rec_group in user_recs|slice_groups:3 %}
+            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                <div class="row g-4">
+                    {% for rec in rec_group %}
+                    <div class="col">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-img-top text-center p-3 position-relative">
+                                {% if rec.book.image %}
+                                    <img src="{{ rec.book.image.url }}" class="img-fluid" style="max-height: 200px;">
+                                {% else %}
+                                    <img src="/media/book_covers/standart_foto.png" class="img-fluid" style="max-height: 200px;">
+                                {% endif %}
+                            </div>
+                            <div class="text-center">
+                                {{ rec.book.get_average_rating|floatformat }} <i class="bi bi-star-fill me-2 text-warning"></i>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title">{{ rec.book.title }}</h5>
+                                <p class="card-text">{{ rec.book.author.name }}</p>
+                                <div class="d-flex justify-content-between">
+                                    <span class="badge bg-secondary">
+                                        <i class="bi bi-calendar me-1"></i>{{ rec.book.publication_year }}
+                                    </span>
+                                    <span class="badge bg-info">
+                                        {{ rec.book.get_age_rating_display }}
+                                    </span>
+                                </div>
+                                <div class="mt-2">
+                                    {% for genre in rec.book.genres.all %}
+                                    <span class="badge bg-light text-dark border rounded-pill me-1">{{ genre.name }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="card-footer bg-white border-0 pt-0">
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'book-detail' rec.book.pk %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-info-circle me-1"></i>Подробнее
+                                    </a>
+                                    {% if user|has_group:"Библиотекарь" %}
+                                    <div class="btn-group">
+                                        <a href="{% url 'book-edit' rec.book.pk %}" class="btn btn-sm btn-outline-warning">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a href="{% url 'book-delete' rec.book.pk %}" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="carousel-item active">
+                <div class="alert alert-info">
+                    Нет рекомендаций. Добавьте книги в "Любимое" или оставьте отзывы.
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% if user_recs|length > 3 %}
+        <button class="carousel-control-prev" type="button" data-bs-target="#userRecommendCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#userRecommendCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        </button>
+        {% endif %}
+    </div>
+    {% elif user.is_authenticated %}
+    <div class="alert alert-info text-center mt-5">
+        <h4><i class="bi bi-lock"></i> Персонализированные рекомендации</h4>
+        <p>У вас пока нет персональных рекомендаций</p>
+    </div>
+    {% else %}
+    <div class="alert alert-info text-center mt-5">
+        <h4><i class="bi bi-lock"></i> Персонализированные рекомендации</h4>
+        <p>Авторизуйтесь, чтобы получить рекомендации на основе ваших предпочтений</p>
+        <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-outline-primary">
+            Войти в систему
+        </a>
+    </div>
+    {% endif %}
 </div>
-
-
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Инициализация выдвижного фильтра
-    const filterForm = document.getElementById('filterForm');
-    const filterIcon = document.getElementById('filterToggleIcon');
-    const filterToggleBtn = document.querySelector('[data-bs-target="#filterForm"]');
-
-    if (filterForm && filterIcon && filterToggleBtn) {
-        // Обработчик событий collapse
-        filterForm.addEventListener('show.bs.collapse', function() {
-            filterIcon.classList.remove('bi-funnel');
-            filterIcon.classList.add('bi-funnel-fill');
-        });
-
-        filterForm.addEventListener('hide.bs.collapse', function() {
-            filterIcon.classList.remove('bi-funnel-fill');
-            filterIcon.classList.add('bi-funnel');
-        });
-
-        // Проверка состояния при загрузке
-        if (filterToggleBtn.getAttribute('aria-expanded') === 'true') {
-            filterIcon.classList.remove('bi-funnel');
-            filterIcon.classList.add('bi-funnel-fill');
+    document.addEventListener('DOMContentLoaded', function () {
+        // Инициализация выдвижного фильтра
+        const filterForm = document.getElementById('filterForm');
+        const filterIcon = document.getElementById('filterToggleIcon');
+        const filterToggleBtn = document.querySelector('[data-bs-target="#filterForm"]');
+        if (filterForm && filterIcon && filterToggleBtn) {
+            // Обработчик событий collapse
+            filterForm.addEventListener('show.bs.collapse', function () {
+                filterIcon.classList.remove('bi-funnel');
+                filterIcon.classList.add('bi-funnel-fill');
+            });
+            filterForm.addEventListener('hide.bs.collapse', function () {
+                filterIcon.classList.remove('bi-funnel-fill');
+                filterIcon.classList.add('bi-funnel');
+            });
+            // Проверка состояния при загрузке
+            if (filterToggleBtn.getAttribute('aria-expanded') === 'true') {
+                filterIcon.classList.remove('bi-funnel');
+                filterIcon.classList.add('bi-funnel-fill');
+            }
         }
-    }
-    // === Обработка автора ===
-    const authorContainer = document.getElementById('selected-author-container');
-    const authorSearch = document.getElementById('author-search');
-    const authorList = document.getElementById('author-list');
-
-    // Показ списка авторов при фокусе
-    authorSearch.addEventListener('focus', function() {
-        authorList.classList.remove('d-none');
-    });
-
-    // Скрытие списка при клике вне области
-    document.addEventListener('click', function(e) {
-        if (!authorSearch.contains(e.target) && !authorList.contains(e.target)) {
-            authorList.classList.add('d-none');
-        }
-    });
-
-    // Поиск авторов
-    authorSearch.addEventListener('input', function() {
-        const searchTerm = this.value.toLowerCase();
-        const authorItems = authorList.querySelectorAll('.author-item');
-
-        authorItems.forEach(item => {
-            const label = item.querySelector('.form-check-label').textContent.toLowerCase();
-            item.style.display = label.includes(searchTerm) ? '' : 'none';
+        // === Обработка автора ===
+        const authorContainer = document.getElementById('selected-author-container');
+        const authorSearch = document.getElementById('author-search');
+        const authorList = document.getElementById('author-list');
+        // Показ списка авторов при фокусе
+        authorSearch.addEventListener('focus', function () {
+            authorList.classList.remove('d-none');
         });
-    });
-
-    // Обновление выбранного автора
-    const authorRadios = document.querySelectorAll('input[name="author"]');
-    authorRadios.forEach(radio => {
-        radio.addEventListener('change', function() {
-            if (this.value) {
-                const authorName = this.nextElementSibling.textContent;
-                authorContainer.style.display = 'block';
-                document.getElementById('selected-author-badge').innerHTML =
-                    `${authorName}<button type="button" class="btn-close btn-close-white ms-2" id="clear-author-btn"></button>`;
-            } else {
+        // Скрытие списка при клике вне области
+        document.addEventListener('click', function (e) {
+            if (!authorSearch.contains(e.target) && !authorList.contains(e.target)) {
+                authorList.classList.add('d-none');
+            }
+        });
+        // Поиск авторов
+        authorSearch.addEventListener('input', function () {
+            const searchTerm = this.value.toLowerCase();
+            const authorItems = authorList.querySelectorAll('.author-item');
+            authorItems.forEach(item => {
+                const label = item.querySelector('.form-check-label').textContent.toLowerCase();
+                item.style.display = label.includes(searchTerm) ? '' : 'none';
+            });
+        });
+        // Обновление выбранного автора
+        const authorRadios = document.querySelectorAll('input[name="author"]');
+        authorRadios.forEach(radio => {
+            radio.addEventListener('change', function () {
+                if (this.value) {
+                    const authorName = this.nextElementSibling.textContent;
+                    authorContainer.style.display = 'block';
+                    document.getElementById('selected-author-badge').innerHTML =
+                        `${authorName}<button type="button" class="btn-close btn-close-white ms-2" id="clear-author-btn"></button>`;
+                } else {
+                    authorContainer.style.display = 'none';
+                }
+            });
+        });
+        // Очистка выбора автора
+        document.addEventListener('click', function (e) {
+            if (e.target.id === 'clear-author-btn') {
+                document.getElementById('author_all').checked = true;
                 authorContainer.style.display = 'none';
+                authorSearch.value = '';
+                const event = new Event('change');
+                document.getElementById('author_all').dispatchEvent(event);
             }
         });
-    });
-
-    // Очистка выбора автора
-    document.addEventListener('click', function(e) {
-        if (e.target.id === 'clear-author-btn') {
-            document.getElementById('author_all').checked = true;
-            authorContainer.style.display = 'none';
-            authorSearch.value = '';
-
-            // Триггерим событие change для обновления формы
-            const event = new Event('change');
-            document.getElementById('author_all').dispatchEvent(event);
-        }
-    });
-
-    // === Обработка жанров ===
-    const genreSearch = document.getElementById('genre-search');
-    const genreList = document.getElementById('genre-list');
-    const selectedGenres = document.getElementById('selected-genres');
-
-    // Показ списка жанров при фокусе
-    genreSearch.addEventListener('focus', function() {
-        genreList.classList.remove('d-none');
-    });
-
-    // Скрытие списка при клике вне области
-    document.addEventListener('click', function(e) {
-        if (!genreSearch.contains(e.target) && !genreList.contains(e.target)) {
-            genreList.classList.add('d-none');
-        }
-    });
-
-    // Поиск жанров
-    genreSearch.addEventListener('input', function() {
-        const searchTerm = this.value.toLowerCase();
-        const genreItems = genreList.querySelectorAll('.genre-item');
-
-        genreItems.forEach(item => {
-            const label = item.querySelector('.form-check-label').textContent.toLowerCase();
-            item.style.display = label.includes(searchTerm) ? '' : 'none';
+        // === Обработка жанров ===
+        const genreSearch = document.getElementById('genre-search');
+        const genreList = document.getElementById('genre-list');
+        const selectedGenres = document.getElementById('selected-genres');
+        // Показ списка жанров при фокусе
+        genreSearch.addEventListener('focus', function () {
+            genreList.classList.remove('d-none');
         });
-    });
-
-    // Обновление выбранных жанров
-    const genreCheckboxes = document.querySelectorAll('.genre-checkbox');
-    genreCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', updateSelectedGenres);
-    });
-
-    // Функция обновления блока выбранных жанров
-    function updateSelectedGenres() {
-        selectedGenres.innerHTML = '';
-
+        // Скрытие списка при клике вне области
+        document.addEventListener('click', function (e) {
+            if (!genreSearch.contains(e.target) && !genreList.contains(e.target)) {
+                genreList.classList.add('d-none');
+            }
+        });
+        // Поиск жанров
+        genreSearch.addEventListener('input', function () {
+            const searchTerm = this.value.toLowerCase();
+            const genreItems = genreList.querySelectorAll('.genre-item');
+            genreItems.forEach(item => {
+                const label = item.querySelector('.form-check-label').textContent.toLowerCase();
+                item.style.display = label.includes(searchTerm) ? '' : 'none';
+            });
+        });
+        // Обновление выбранных жанров
+        const genreCheckboxes = document.querySelectorAll('.genre-checkbox');
         genreCheckboxes.forEach(checkbox => {
-            if (checkbox.checked) {
-                const genreId = checkbox.value;
-                const genreName = checkbox.nextElementSibling.textContent;
-
-                const badge = document.createElement('span');
-                badge.className = 'badge bg-primary d-flex align-items-center fs-6 p-2';
-                badge.innerHTML = `
-                    ${genreName}
-                    <button type="button" class="btn-close btn-close-white ms-2"
-                            data-genre-id="${genreId}"></button>
-                `;
-                selectedGenres.appendChild(badge);
+            checkbox.addEventListener('change', updateSelectedGenres);
+        });
+        // Функция обновления блока выбранных жанров
+        function updateSelectedGenres() {
+            selectedGenres.innerHTML = '';
+            genreCheckboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    const genreId = checkbox.value;
+                    const genreName = checkbox.nextElementSibling.textContent;
+                    const badge = document.createElement('span');
+                    badge.className = 'badge bg-primary d-flex align-items-center fs-6 p-2';
+                    badge.innerHTML = `
+                        ${genreName}
+                        <button type="button" class="btn-close btn-close-white ms-2"
+                                data-genre-id="${genreId}"></button>
+                    `;
+                    selectedGenres.appendChild(badge);
+                }
+            });
+        }
+        // Обработка удаления жанра
+        document.addEventListener('click', function (e) {
+            if (e.target.classList.contains('btn-close') && e.target.parentElement.parentElement === selectedGenres) {
+                const genreId = e.target.getAttribute('data-genre-id');
+                const checkbox = document.querySelector(`#genre_${genreId}`);
+                if (checkbox) {
+                    checkbox.checked = false;
+                    updateSelectedGenres();
+                }
             }
         });
-    }
-
-    // Обработка удаления жанра
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('btn-close') && e.target.parentElement.parentElement === selectedGenres) {
-            const genreId = e.target.getAttribute('data-genre-id');
-            const checkbox = document.querySelector(`#genre_${genreId}`);
-
-            if (checkbox) {
-                checkbox.checked = false;
-                updateSelectedGenres();
-            }
+        // Инициализация выбранных жанров
+        updateSelectedGenres();
+        // === Общие функции ===
+        // Валидация ISBN
+        const isbnInput = document.querySelector('input[name="isbn"]');
+        if (isbnInput) {
+            isbnInput.addEventListener('input', function () {
+                this.value = this.value.replace(/\D/g, '');
+                if (this.value.length > 13) this.value = this.value.slice(0, 13);
+            });
+        }
+        // Валидация года
+        const yearInput = document.querySelector('input[name="year"]');
+        if (yearInput) {
+            yearInput.addEventListener('input', function () {
+                this.value = this.value.replace(/\D/g, '');
+                if (this.value.length > 4) this.value = this.value.slice(0, 4);
+            });
         }
     });
-
-    // Инициализация выбранных жанров
-    updateSelectedGenres();
-
-    // === Общие функции ===
-
-    // Валидация ISBN
-    const isbnInput = document.querySelector('input[name="isbn"]');
-    if (isbnInput) {
-        isbnInput.addEventListener('input', function() {
-            // Удаляем все нецифровые символы
-            this.value = this.value.replace(/\D/g, '');
-
-            // Ограничиваем длину до 13 символов
-            if (this.value.length > 13) {
-                this.value = this.value.slice(0, 13);
-            }
-        });
-    }
-
-    // Валидация года
-    const yearInput = document.querySelector('input[name="year"]');
-    if (yearInput) {
-        yearInput.addEventListener('input', function() {
-            // Удаляем все нецифровые символы
-            this.value = this.value.replace(/\D/g, '');
-
-            // Ограничиваем длину до 4 символов
-            if (this.value.length > 4) {
-                this.value = this.value.slice(0, 4);
-            }
-        });
-    }
-});
 </script>
-
+<style>
+.carousel-control-prev,
+.carousel-control-next {
+    width: 40px;
+    height: 40px;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: #000;
+    opacity: 1;
+    border-radius: 50%;
+    padding: 8px;
+}
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    background-size: 1.5rem;
+    background-image: none;
+}
+.carousel-control-prev-icon::before,
+.carousel-control-next-icon::before {
+    content: "";
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+}
+.carousel-control-prev-icon::before {
+    content: "\276E"; /* Unicode символ левой стрелки */
+}
+.carousel-control-next-icon::before {
+    content: "\276F"; /* Unicode символ правой стрелки */
+}
+.carousel-control-prev {
+    left: -50px;
+}
+.carousel-control-next {
+    right: -50px;
+}
+@media (max-width: 768px) {
+    .carousel-control-prev {
+        left: -20px;
+    }
+    .carousel-control-next {
+        right: -20px;
+    }
+}
+</style>
 {% endblock %}

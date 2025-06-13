@@ -2,7 +2,7 @@
 import os
 from datetime import datetime
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Avg
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views.generic import (
@@ -14,6 +14,8 @@ from django.views.generic import (
     FormView
 )
 from django.contrib.auth.mixins import UserPassesTestMixin
+
+from recommendations.models import RecommendedBook
 from .models import Book, Genre, Author, BookStatus
 from .forms import BookForm, AuthorForm, GenreForm
 
@@ -65,6 +67,20 @@ class BookListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        # ТОП-5 книг по рейтингу
+        context['top_books'] = Book.objects.annotate(
+            avg_rating=Avg('reviews__rating')
+        ).order_by('-avg_rating')[:5]
+
+        # Персонализированные рекомендации
+        if self.request.user.is_authenticated:
+            context['user_recs'] = RecommendedBook.objects.filter(
+                user=self.request.user
+            ).select_related('book').order_by('-score')[:5]
+        else:
+            context['user_recs'] = None
+
         context['genres'] = Genre.objects.all()
         context['authors_list'] = Author.objects.all().order_by('name')
         context['selected_genres'] = [int(g) for g in self.request.GET.getlist('genres')] if self.request.GET.getlist(
