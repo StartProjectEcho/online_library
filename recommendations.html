@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% load custom_tags %}
+{% block content %}
+
+<div class="container mt-4">
+    <!-- Заголовок -->
+    <div class="text-center mb-5">
+        <h1 class="display-4 text-primary">Рекомендации</h1>
+        <p class="lead">На основе ваших вкусовых предпочтений наша система анализирует ваши предпочтения, любимые книги и жанры, чтобы предложить вам наиболее подходящие произведения. Чем больше вы читаете и оцениваете книги, тем точнее становятся рекомендации.</p>
+    </div>
+
+    <!-- Рекомендации -->
+    <div class="row g-4">
+        <!-- Драма / Психология -->
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="h5 mb-0">
+                        <i class="bi bi-emoji-frown me-2"></i>Драма / Психология
+                    </h3>
+                    <small>Похоже на "Старик и море", "ГАУД", "Анну Каренину"</small>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <strong>"Над пропастью во ржи"</strong> – Джером Сэлинджер<br>
+                            <small class="text-muted">История подростка Холдена Колфилда, его бунта против фальши взрослого мира.</small>
+                        </li>
+                        <li class="list-group-item">
+                            <strong>"Три товарища"</strong> – Эрих Мария Ремарк<br>
+                            <small class="text-muted">Трогательная история дружбы и любви в послевоенной Германии.</small>
+                        </li>
+                        <li class="list-group-item">
+                            <strong>"По ком звонит колокол"</strong> – Эрнест Хемингуэй<br>
+                            <small class="text-muted">Роман о гражданской войне в Испании и человеческой солидарности.</small>
+                        </li>
+                        <li class="list-group-item">
+                            <strong>"Преступление и наказание"</strong> – Фёдор Достоевский<br>
+                            <small class="text-muted">Философское исследование преступления и морали через историю Раскольникова.</small>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Приключения / Фэнтези -->
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-success text-white">
+                    <h3 class="h5 mb-0">
+                        <i class="bi bi-magic me-2"></i>Приключения / Фэнтези
+                    </h3>
+                    <small>Похоже на "Гарри Поттер", "Алису в Стране чудес"</small>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <strong>"Хоббит"</strong> – Дж. Р. Р. Толкин<br>
+                            <small class="text-muted">Путешествие Бильбо Бэггинса к Одинокой Горе в компании гномов.</small>
+                        </li>
+                        <li class="list-group-item">
+                            <strong>"Нарния"</strong> – Клайв С. Льюис<br>
+                            <small class="text-muted">Волшебная страна, куда дети попадают через платяной шкаф.</small>
+                        </li>
+                        <li class="list-group-item">
+                            <strong>"Перси Джексон и Олимпийцы"</strong> – Рик Риордан<br>
+                            <small class="text-muted">Современные приключения полукровок - детей греческих богов.</small>
+                        </li>
+                        <li class="list-group-item">
+                            <strong>"Тёмные начала"</strong> – Филип Пулман<br>
+                            <small class="text-muted">Эпическая история о Лире Белакве и параллельных мирах.</small>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Классика / Философия -->
+        <div class="col-12 mt-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h3 class="h5 mb-0">
+                        <i class="bi bi-book me-2"></i>Классика / Философия
+                    </h3>
+                    <small>Похоже на "Степь" Чехова</small>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item">
+                                    <strong>"Идиот"</strong> – Фёдор Достоевский<br>
+                                    <small class="text-muted">История князя Мышкина, "положительно прекрасного человека".</small>
+                                </li>
+                                <li class="list-group-item">
+                                    <strong>"Моби Дик"</strong> – Герман Мелвилл<br>
+                                    <small class="text-muted">Эпическое повествование о китобойном промысле и белом ките.</small>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item">
+                                    <strong>"Сто лет одиночества"</strong> – Габриэль Гарсиа Маркес<br>
+                                    <small class="text-muted">Сага о семье Буэндиа в вымышленном городе Макондо.</small>
+                                </li>
+                                <li class="list-group-item">
+                                    <strong>"Тихий Дон"</strong> – Михаил Шолохов<br>
+                                    <small class="text-muted">Эпопея о жизни донского казачества в годы революции.</small>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Информация о системе рекомендаций -->
+    <div class="alert alert-info mt-5">
+        <div class="d-flex align-items-center">
+            <i class="bi bi-robot fs-3 me-3"></i>
+            <div>
+                <h4 class="alert-heading">Как работают наши рекомендации?</h4>
+                <p class="mb-0">Наша система анализирует ваши предпочтения, любимые книги и жанры, чтобы предложить вам наиболее подходящие произведения. Чем больше вы читаете и оцениваете книги, тем точнее становятся рекомендации.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
