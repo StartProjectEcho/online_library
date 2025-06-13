@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'news',
     'stats',
     'reviews',
+    'recommendations',
 ]
 
 MIDDLEWARE = [
@@ -146,3 +147,15 @@ SESSION_COOKIE_SECURE = False
 
 TIME_ZONE = 'Asia/Yekaterinburg'
 LANGUAGE_CODE = 'ru'
+
+# Celery
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
+CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
+
+from .celery import app as celery_app
+# Celery будет запущен при старте Django
+__all__ = ('celery_app',)

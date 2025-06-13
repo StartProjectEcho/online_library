@@ -1,0 +1,27 @@
+<!-- user_recommendations.html -->
+{% extends "base.html" %}
+{% load custom_tags %}
+{% block content %}
+<div class="container mt-5">
+    <h2>Ваши рекомендации</h2>
+    {% if user_recs %}
+    <div class="row g-4">
+        {% for rec in user_recs %}
+        <div class="col-md-4">
+            <div class="card">
+                <img src="{{ rec.book.image.url }}" class="card-img-top" alt="{{ rec.book.title }}">
+                <div class="card-body">
+                    <h5 class="card-title">{{ rec.book.title }}</h5>
+                    <p class="card-text">{{ rec.book.author.name }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info text-center">
+        У вас пока нет персональных рекомендаций. Попробуйте оставить отзывы или отметить любимые книги!
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,4 +1,6 @@
 from django.contrib import admin
+
+from recommendations.models import RecommendedBook
 from .models import Book, Author, Genre
 
 @admin.register(Book)
@@ -9,3 +11,4 @@ class BookAdmin(admin.ModelAdmin):
 
 admin.site.register(Author)
 admin.site.register(Genre)
+admin.site.register(RecommendedBook)

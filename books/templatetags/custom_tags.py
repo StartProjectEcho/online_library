@@ -35,3 +35,18 @@ def query_transform(context, **kwargs):
 def get_item(dictionary, key):
     return dictionary.get(key)
 
+@register.filter(name='slice_groups')
+def slice_groups(value, size):
+    if not value:
+        return []
+    try:
+        length = len(value)
+    except TypeError:
+        return []
+    return [value[i:i+size] for i in range(0, length, size)]
+
+@register.simple_tag
+def book_cover_url(book):
+    if book.image:
+        return book.image.url
+    return '/media/book_covers/standart_foto.png'
